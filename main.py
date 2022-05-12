@@ -69,15 +69,30 @@ def what_to_do(do_this):
 
     #process_video
     elif do_this == "2":
+        files = os.listdir('{}/visual_data'.format(os.getcwd()))
+
+        print("How many video should be processed?(current max= {})".format(len(files)+1))
+        how_many = input()
+        how_many = int(how_many)
+
         print("Processing the video...")
-        video_processing("How to Make a Quick-Reference Guide")
+        if(how_many == 0):
+            print("No process done, program exits...")
+            return 0
+
+        elif((how_many-1) <= len(files)):
+            for index in range((how_many-1)):
+                video_processing(files[index])
+
+        else:
+            print("No such a command exist!")
 
     else:
         print("No such a command exist!")
 
 
 def process_image(image_name):
-    SHOW_DEBUG_STEPS = False
+    SHOW_DEBUG_STEPS = True
 
     # Read image from your local file system
     #original_image = cv.imread('{}/visual_data/{}.jpg'.format(os.getcwd(), image_name))
@@ -115,41 +130,28 @@ def process_image(image_name):
 
 
 def video_processing(video_name):
-    SHOW_DEBUG_STEPS = False
+    SHOW_DEBUG_STEPS = True
 
     # Reading video
-    cap = cv.VideoCapture('{}/visual_data/{}.mp4'.format(os.getcwd(), video_name))
+    cap = cv.VideoCapture('{}/visual_data/{}'.format(os.getcwd(), video_name))
 
     # if video is not present, show error
     if not (cap.isOpened()):
         print("Error reading file")
 
-    start_frame_number = 1000
-    cap.set(cv.CAP_PROP_POS_FRAMES, start_frame_number)
-
-    # Check if you are able to capture the video
-    ret, fFrame = cap.read()
-
-    # Capturing 2 consecutive frames and making a copy of those frame. Perform all operations on the copy frame.
-    success, fFrame1 = cap.read()
-    success, fFrame2 = cap.read()
-
-    img1 = fFrame1.copy()
-    img2 = fFrame2.copy()
-
-    if (SHOW_DEBUG_STEPS):
-        print('img1 height' + str(img1.shape[0]))
-        print('img1 width' + str(img1.shape[1]))
-        print('img2 height' + str(img2.shape[0]))
-        print('img2 width' + str(img2.shape[1]))
+    """start_frame_number = 0
+    cap.set(cv.CAP_PROP_POS_FRAMES, start_frame_number)"""
 
     count = 0
     can_continue = True
     total_frame = 0
+    start_frame_number = 0
 
     while(can_continue):
+        cap.set(cv.CAP_PROP_POS_FRAMES, start_frame_number)
         success, fFrame = cap.read()
         total_frame += 1
+        start_frame_number += 10
 
         if success:
             result = process_image(fFrame)
