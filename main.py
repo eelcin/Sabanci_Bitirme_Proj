@@ -5,9 +5,17 @@ from os import path
 import cv2 as cv
 import matplotlib.pyplot as plt
 
+from sklearn.cluster import KMeans
+import numpy as np
+from collections import Counter
+from skimage.color import rgb2lab, deltaE_cie76
+
+
 # Load the classifier and create a cascade object for face detection
 face_cascade = cv.CascadeClassifier('{}/opencv/data/haarcascades/haarcascade_frontalface_alt.xml'.format(os.getcwd()))
 
+def RGB2HEX(color):
+    return "#{:02x}{:02x}{:02x}".format(int(color[0]), int(color[1]), int(color[2]))
 
 # function to plot n images using subplots
 def plot_image(images, captions=None, cmap=None):
@@ -71,7 +79,7 @@ def what_to_do(do_this):
     elif do_this == "2":
         files = os.listdir('{}/visual_data'.format(os.getcwd()))
 
-        print("How many video should be processed?(current max= {})".format(len(files)+1))
+        print("How many video should be processed?(current max= {})".format(len(files)))
         how_many = input()
         how_many = int(how_many)
 
@@ -80,8 +88,9 @@ def what_to_do(do_this):
             print("No process done, program exits...")
             return 0
 
-        elif((how_many-1) <= len(files)):
+        elif((how_many) <= len(files)):
             for index in range((how_many-1)):
+                print(index)
                 video_processing(files[index])
 
         else:
@@ -102,6 +111,8 @@ def process_image(image_name):
 
     # Convert color image to grayscale for Viola-Jones
     grayscale_image = cv.cvtColor(original_image, cv.COLOR_BGR2GRAY)
+
+    get_colors(original_image, 8)
 
     detected_faces = face_cascade.detectMultiScale(grayscale_image)
 
@@ -130,7 +141,7 @@ def process_image(image_name):
 
 
 def video_processing(video_name):
-    SHOW_DEBUG_STEPS = True
+    SHOW_DEBUG_STEPS = False
 
     # Reading video
     cap = cv.VideoCapture('{}/visual_data/{}'.format(os.getcwd(), video_name))
@@ -166,7 +177,38 @@ def video_processing(video_name):
             print("count:", count)
             can_continue = False
 
+def get_colors(image, number_of_colors):
+    SHOW_DEBUG_STEPS = True
 
+    image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
+    modified_image = cv.resize(image, (25, 16), interpolation = cv.INTER_AREA)
+
+    if(SHOW_DEBUG_STEPS):
+        plt.imshow(modified_image)
+        plt.waitforbuttonpress(1)
+
+    modified_image = modified_image.reshape(modified_image.shape[0] * modified_image.shape[1], 3)
+
+
+
+    clf = KMeans(n_clusters=number_of_colors)
+    labels = clf.fit_predict(modified_image)
+
+    counts = Counter(labels)
+
+    center_colors = clf.cluster_centers_
+    # We get ordered colors by iterating through the keys
+    ordered_colors = [center_colors[i] for i in counts.keys()]
+    hex_colors = [RGB2HEX(ordered_colors[i]) for i in counts.keys()]
+    #rgb_colors = [ordered_colors[i] for i in counts.keys()]
+
+    if (SHOW_DEBUG_STEPS):
+        plt.figure(figsize=(8, 6))
+        plt.pie(counts.values(), labels=hex_colors, colors=hex_colors)
+        plt.waitforbuttonpress(1)
+        print("Dominant Colors of the frame: ", hex_colors)
+
+    #return hex_colors
 
 if __name__ == "__main__":
     print("Choose one of the numbers as input to do the following commands:\n"
