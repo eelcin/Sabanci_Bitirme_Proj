@@ -47,6 +47,7 @@ def download_visual_data(search_what, how_many):
             print("File creation failed!")
 
     search_what = search_what.replace(" ", "+")
+    search_what = search_what.replace("\'", "")
 
     # Change the current working directory
     previous_dir = os.getcwd()
@@ -55,7 +56,9 @@ def download_visual_data(search_what, how_many):
     # Print the current working directory
     print("Visual data saved to path: {0}".format(os.getcwd()))
 
-    os.system('youtube-dl ytsearch{}:{}'.format(how_many, search_what))
+    #os.system("youtube-dl ytsearch{}:{}".format(how_many, search_what))
+    os.system("yt-dlp ytsearch{}:{}".format(how_many, search_what))
+
 
     os.chdir(previous_dir)
 
